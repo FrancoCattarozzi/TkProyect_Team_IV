@@ -4,6 +4,7 @@ import time as t
 dict_ejercicios = {}
 tiempo_descanso = 0
 rutina = {}
+descansos_intermedios = {}
 
 #----------------------------VENTANA PRINCIPAL---------------------------------
 
@@ -22,11 +23,9 @@ menu_principal.add_cascade(label='Ejercicios', menu=submenu_ejercicios)
 submenu_rutinas = tk.Menu(menu_principal, tearoff=0)
 menu_principal.add_cascade(label='Rutinas', menu=submenu_rutinas)
 
-# Etiquetas de bienvenida
 tk.Label(ventana, text='BIENVENIDO A LA APP DE RUTINAS', font=('Verdana', 10, 'bold'), pady=20).pack()
-tk.Label(ventana, text='Aqui podrás generar tu propia rutina para ejercitarte', font=('Verdana', 10)).pack()
+tk.Label(ventana, text='Aquí podrás generar tu propia rutina para ejercitarte', font=('Verdana', 10)).pack()
 
-# Listbox principal para mostrar ejercicios
 listbox_principal = tk.Listbox(ventana, font=('Verdana', 10))
 listbox_principal.pack(pady=10)
 
@@ -71,7 +70,6 @@ def abrir_ventana_eliminar():
     listbox_ejercicios = tk.Listbox(ventana_eliminar, font=('Verdana', 10))
     listbox_ejercicios.pack(pady=5)
 
-    # Llenar el listbox con los ejercicios actuales
     for ejercicio in dict_ejercicios:
         listbox_ejercicios.insert(tk.END, ejercicio)
 
@@ -86,14 +84,14 @@ def abrir_ventana_eliminar():
 
     tk.Button(ventana_eliminar, text='Eliminar', font=('Verdana', 10), command=eliminar_ejercicio).pack(pady=5)
 
-#----------------------------VENTANA DEFINIR DESCANSO---------------------------------
+#----------------------------VENTANA DEFINIR DESCANSO GENERAL---------------------------------
 
 def abrir_ventana_descanso():
     ventana_descanso = tk.Toplevel(ventana)
     ventana_descanso.title('Definir descanso')
     ventana_descanso.geometry('600x400')
 
-    tk.Label(ventana_descanso, text='Ingrese el tiempo de descanso (en segundos):', font=('Verdana', 10)).pack(pady=10)
+    tk.Label(ventana_descanso, text='Ingrese el tiempo de descanso general (en segundos):', font=('Verdana', 10)).pack(pady=10)
     entry_descanso = tk.Entry(ventana_descanso, font=('Verdana', 10))
     entry_descanso.pack(pady=5)
 
@@ -123,9 +121,32 @@ def abrir_ventana_rutinas():
     def definir_rutina():
         seleccionados = listbox_rutina.curselection()
         rutina.clear()
+        descansos_intermedios.clear()
+
         for i in seleccionados:
             ejercicio = listbox_rutina.get(i)
             rutina[ejercicio] = dict_ejercicios[ejercicio]
+
+            ventana_input = tk.Toplevel(ventana_rutinas)
+            ventana_input.title(f'Descanso tras "{ejercicio}"')
+            ventana_input.geometry('400x200')
+
+            tk.Label(ventana_input, text=f'Descanso después de "{ejercicio}" (segundos):', font=('Verdana', 10)).pack(pady=10)
+            entry = tk.Entry(ventana_input, font=('Verdana', 10))
+            entry.pack(pady=5)
+
+            def guardar():
+                valor = entry.get()
+                if valor.isdigit():
+                    descansos_intermedios[ejercicio] = int(valor)
+                    ventana_input.destroy()
+                else:
+                    entry.delete(0, tk.END)
+                    entry.insert(0, "Solo números")
+
+            tk.Button(ventana_input, text='Guardar', command=guardar).pack(pady=10)
+            ventana_input.wait_window()
+
         ventana_rutinas.destroy()
 
     tk.Button(ventana_rutinas, text='Guardar rutina', font=('Verdana', 10), command=definir_rutina).pack(pady=5)
@@ -157,9 +178,11 @@ def abrir_ventana_iniciar():
                 temporizador.config(text="¡Rutina terminada!")
 
         def ejecutar_descanso(idx):
-            if tiempo_descanso > 0:
-                temporizador.config(text=f"Descanso\n{tiempo_descanso}s")
-                ventana_iniciar.after(tiempo_descanso * 1000, lambda: ejecutar_ejercicio(idx + 1))
+            ejercicio_actual = ejercicios[idx][0]
+            descanso = descansos_intermedios.get(ejercicio_actual, tiempo_descanso)
+            if descanso > 0:
+                temporizador.config(text=f"Descanso\n{descanso}s")
+                ventana_iniciar.after(descanso * 1000, lambda: ejecutar_ejercicio(idx + 1))
             else:
                 ejecutar_ejercicio(idx + 1)
 
@@ -171,9 +194,9 @@ def abrir_ventana_iniciar():
 
 submenu_ejercicios.add_command(label='Agregar ejercicios', command=abrir_ventana_agregar)
 submenu_ejercicios.add_command(label='Eliminar ejercicios', command=abrir_ventana_eliminar)
-submenu_rutinas.add_command(label='Definir descanso', command=abrir_ventana_descanso)
-submenu_rutinas.add_command(label='Definir rutina', command=abrir_ventana_rutinas)
-menu_principal.add_command(label='Iniciar rutina', command=abrir_ventana_iniciar)
+submenu_rutinas.add_command(label='Definir descanso general', command=abrir_ventana_descanso)
+submenu_rutinas.add_command(label='Definir rutina (con descansos)', command=abrir_ventana_rutinas)
+menu_principal.add_command(label='Iniciar rutina', command=abrir_ventana_iniciar)  # ✔️ Esta línea debe estar
 menu_principal.add_command(label='Salir', command=ventana.quit)
 
 ventana.mainloop()
