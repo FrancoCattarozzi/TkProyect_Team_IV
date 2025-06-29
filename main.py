@@ -163,6 +163,15 @@ def abrir_ventana_iniciar():
     temporizador = tk.Label(ventana_iniciar, font=('Arial', 60), bg='blue', fg='white')
     temporizador.pack(anchor='center')
 
+    def cuenta_regresiva(segundos, texto, callback):
+        if segundos >= 0:
+            minutos = segundos // 60
+            segs = segundos % 60
+            temporizador.config(text=f"{texto}\n{minutos:02d}:{segs:02d}")
+            ventana_iniciar.after(1000, lambda: cuenta_regresiva(segundos - 1, texto, callback))
+        else:
+            callback()
+
     def iniciar_rutina():
         ejercicios = list(rutina.items())
         if not ejercicios:
@@ -172,8 +181,7 @@ def abrir_ventana_iniciar():
         def ejecutar_ejercicio(idx):
             if idx < len(ejercicios):
                 ejercicio, duracion = ejercicios[idx]
-                temporizador.config(text=f"{ejercicio}\n{duracion}s")
-                ventana_iniciar.after(duracion * 1000, lambda: ejecutar_descanso(idx))
+                cuenta_regresiva(duracion, ejercicio, lambda: ejecutar_descanso(idx))
             else:
                 temporizador.config(text="¡Rutina terminada!")
 
@@ -181,8 +189,7 @@ def abrir_ventana_iniciar():
             ejercicio_actual = ejercicios[idx][0]
             descanso = descansos_intermedios.get(ejercicio_actual, tiempo_descanso)
             if descanso > 0:
-                temporizador.config(text=f"Descanso\n{descanso}s")
-                ventana_iniciar.after(descanso * 1000, lambda: ejecutar_ejercicio(idx + 1))
+                cuenta_regresiva(descanso, "Descanso", lambda: ejecutar_ejercicio(idx + 1))
             else:
                 ejecutar_ejercicio(idx + 1)
 
