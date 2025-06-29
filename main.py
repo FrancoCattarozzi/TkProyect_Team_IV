@@ -84,25 +84,6 @@ def abrir_ventana_eliminar():
 
     tk.Button(ventana_eliminar, text='Eliminar', font=('Verdana', 10), command=eliminar_ejercicio).pack(pady=5)
 
-#----------------------------VENTANA DEFINIR DESCANSO GENERAL---------------------------------
-
-def abrir_ventana_descanso():
-    ventana_descanso = tk.Toplevel(ventana)
-    ventana_descanso.title('Definir descanso')
-    ventana_descanso.geometry('600x400')
-
-    tk.Label(ventana_descanso, text='Ingrese el tiempo de descanso general (en segundos):', font=('Verdana', 10)).pack(pady=10)
-    entry_descanso = tk.Entry(ventana_descanso, font=('Verdana', 10))
-    entry_descanso.pack(pady=5)
-
-    def definir_descanso():
-        global tiempo_descanso
-        valor = entry_descanso.get()
-        if valor.isdigit():
-            tiempo_descanso = int(valor)
-            ventana_descanso.destroy()
-
-    tk.Button(ventana_descanso, text='Guardar', font=('Verdana', 10), command=definir_descanso).pack(pady=5)
 
 #----------------------------VENTANA DEFINIR RUTINA---------------------------------
 
@@ -126,7 +107,7 @@ def abrir_ventana_rutinas():
         for i in seleccionados:
             ejercicio = listbox_rutina.get(i)
             rutina[ejercicio] = dict_ejercicios[ejercicio]
-
+            
             ventana_input = tk.Toplevel(ventana_rutinas)
             ventana_input.title(f'Descanso tras "{ejercicio}"')
             ventana_input.geometry('400x200')
@@ -146,12 +127,11 @@ def abrir_ventana_rutinas():
 
             tk.Button(ventana_input, text='Guardar', command=guardar).pack(pady=10)
             ventana_input.wait_window()
-
+            
         ventana_rutinas.destroy()
 
     tk.Button(ventana_rutinas, text='Guardar rutina', font=('Verdana', 10), command=definir_rutina).pack(pady=5)
 
-#----------------------------VENTANA INICIAR RUTINA---------------------------------
 
 def abrir_ventana_iniciar():
     ventana_iniciar = tk.Toplevel(ventana)
@@ -163,14 +143,36 @@ def abrir_ventana_iniciar():
     temporizador = tk.Label(ventana_iniciar, font=('Arial', 60), bg='blue', fg='white')
     temporizador.pack(anchor='center')
 
+    estado = {'pausado': False, 'segundos': 0, 'texto': '', 'callback': None, 'en_curso': False}
+
     def cuenta_regresiva(segundos, texto, callback):
-        if segundos >= 0:
-            minutos = segundos // 60
-            segs = segundos % 60
-            temporizador.config(text=f"{texto}\n{minutos:02d}:{segs:02d}")
-            ventana_iniciar.after(1000, lambda: cuenta_regresiva(segundos - 1, texto, callback))
-        else:
-            callback()
+        estado['segundos'] = segundos
+        estado['texto'] = texto
+        estado['callback'] = callback
+        if not estado['pausado']:
+            if segundos >= 0:
+                minutos = segundos // 60
+                segs = segundos % 60
+                temporizador.config(text=f"{texto}\n{minutos:02d}:{segs:02d}")
+                estado['en_curso'] = True
+                ventana_iniciar.after(1000, lambda: cuenta_regresiva(segundos - 1, texto, callback))
+            else:
+                estado['en_curso'] = False
+                boton_pausar.pack_forget()
+                boton_continuar.pack_forget()
+                boton_iniciar.pack(pady=5)
+                callback()
+
+    def pausar():
+        estado['pausado'] = True
+        boton_pausar.pack_forget()
+        boton_continuar.pack(pady=5)
+
+    def continuar():
+        estado['pausado'] = False
+        boton_continuar.pack_forget()
+        boton_pausar.pack(pady=5)
+        cuenta_regresiva(estado['segundos'], estado['texto'], estado['callback'])
 
     def iniciar_rutina():
         ejercicios = list(rutina.items())
@@ -178,12 +180,19 @@ def abrir_ventana_iniciar():
             temporizador.config(text="Sin rutina")
             return
 
+        boton_iniciar.pack_forget()
+        boton_pausar.pack(pady=5)
+        estado['pausado'] = False
+
         def ejecutar_ejercicio(idx):
             if idx < len(ejercicios):
                 ejercicio, duracion = ejercicios[idx]
                 cuenta_regresiva(duracion, ejercicio, lambda: ejecutar_descanso(idx))
             else:
                 temporizador.config(text="¡Rutina terminada!")
+                boton_pausar.pack_forget()
+                boton_continuar.pack_forget()
+                boton_iniciar.pack(pady=5)
 
         def ejecutar_descanso(idx):
             ejercicio_actual = ejercicios[idx][0]
@@ -195,13 +204,16 @@ def abrir_ventana_iniciar():
 
         ejecutar_ejercicio(0)
 
-    tk.Button(ventana_iniciar, text='Iniciar', font=('Verdana', 10), command=iniciar_rutina).pack(pady=5)
+    boton_iniciar = tk.Button(ventana_iniciar, text='Iniciar', font=('Verdana', 10), command=iniciar_rutina)
+    boton_pausar = tk.Button(ventana_iniciar, text='Pausar', font=('Verdana', 10), command=pausar)
+    boton_continuar = tk.Button(ventana_iniciar, text='Continuar', font=('Verdana', 10), command=continuar)
+
+    boton_iniciar.pack(pady=5)
 
 #----------------------------ASOCIAR FUNCIONES AL MENÚ---------------------------------
 
 submenu_ejercicios.add_command(label='Agregar ejercicios', command=abrir_ventana_agregar)
 submenu_ejercicios.add_command(label='Eliminar ejercicios', command=abrir_ventana_eliminar)
-submenu_rutinas.add_command(label='Definir descanso general', command=abrir_ventana_descanso)
 submenu_rutinas.add_command(label='Definir rutina (con descansos)', command=abrir_ventana_rutinas)
 menu_principal.add_command(label='Iniciar rutina', command=abrir_ventana_iniciar)  # ✔️ Esta línea debe estar
 menu_principal.add_command(label='Salir', command=ventana.quit)
