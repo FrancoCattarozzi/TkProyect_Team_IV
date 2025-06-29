@@ -1,7 +1,7 @@
 import tkinter as tk
 import time as t
 
-dict_ejercicios = {}
+dict_ejercicios = {"Flexiones": 30, "Sentadillas": 60, "Abdominales": 45, "Saltos": 30, "Plancha": 60, "Burpees": 45, "Escaladores": 30, "Puente": 30, "Zancadas": 60, "Correr en el lugar": 60, "Saltos de tijera": 30, "Mountain climbers": 45, "Jumping jacks": 30, "Elevación de talones": 30, "Flexiones de tríceps": 30, "Plancha lateral": 30, "Puente de glúteos": 30, "Sentadilla con salto": 30, "Tijeras": 30}
 tiempo_descanso = 0
 rutina = {}
 descansos_intermedios = {}
@@ -26,13 +26,23 @@ menu_principal.add_cascade(label='Rutinas', menu=submenu_rutinas)
 tk.Label(ventana, text='BIENVENIDO A LA APP DE RUTINAS', font=('Verdana', 10, 'bold'), pady=20).pack()
 tk.Label(ventana, text='Aquí podrás generar tu propia rutina para ejercitarte', font=('Verdana', 10)).pack()
 
-listbox_principal = tk.Listbox(ventana, font=('Verdana', 10))
-listbox_principal.pack(pady=10)
+frame_lista = tk.Frame(ventana)
+frame_lista.pack(pady=30, padx=150, fill=tk.BOTH, expand=True)
+
+scrollbar = tk.Scrollbar(frame_lista)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+listbox_principal = tk.Listbox(frame_lista, font=('Verdana', 10), yscrollcommand=scrollbar.set)
+listbox_principal.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+scrollbar.config(command=listbox_principal.yview)
 
 def actualizar_listbox_principal():
     listbox_principal.delete(0, tk.END)
     for ejercicio, duracion in dict_ejercicios.items():
         listbox_principal.insert(tk.END, f"{ejercicio} - {duracion} segundos")
+
+actualizar_listbox_principal()
 
 #----------------------------VENTANA AGREGAR EJERCICIO---------------------------------
 
@@ -67,8 +77,17 @@ def abrir_ventana_eliminar():
     ventana_eliminar.geometry('600x400')
 
     tk.Label(ventana_eliminar, text='Seleccione el ejercicio a eliminar:', font=('Verdana', 10)).pack(pady=10)
-    listbox_ejercicios = tk.Listbox(ventana_eliminar, font=('Verdana', 10))
-    listbox_ejercicios.pack(pady=5)
+
+    frame_lista = tk.Frame(ventana_eliminar)
+    frame_lista.pack(pady=30, padx=150, fill=tk.BOTH, expand=True)
+
+    scrollbar = tk.Scrollbar(frame_lista)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    listbox_ejercicios = tk.Listbox(frame_lista, font=('Verdana', 10), yscrollcommand=scrollbar.set)
+    listbox_ejercicios.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    scrollbar.config(command=listbox_ejercicios.yview)
 
     for ejercicio in dict_ejercicios:
         listbox_ejercicios.insert(tk.END, ejercicio)
@@ -93,8 +112,17 @@ def abrir_ventana_rutinas():
     ventana_rutinas.geometry('600x400')
 
     tk.Label(ventana_rutinas, text='Seleccione los ejercicios para la rutina:', font=('Verdana', 10)).pack(pady=10)
-    listbox_rutina = tk.Listbox(ventana_rutinas, font=('Verdana', 10), selectmode=tk.MULTIPLE)
-    listbox_rutina.pack(pady=5)
+
+    frame_lista = tk.Frame(ventana_rutinas)
+    frame_lista.pack(pady=30, padx=150, fill=tk.BOTH, expand=True)
+
+    scrollbar = tk.Scrollbar(frame_lista)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    listbox_rutina = tk.Listbox(frame_lista, font=('Verdana', 10), yscrollcommand=scrollbar.set)
+    listbox_rutina.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    scrollbar.config(command=listbox_rutina.yview)
 
     for ejercicio in dict_ejercicios:
         listbox_rutina.insert(tk.END, ejercicio)
@@ -215,7 +243,7 @@ def abrir_ventana_iniciar():
 submenu_ejercicios.add_command(label='Agregar ejercicios', command=abrir_ventana_agregar)
 submenu_ejercicios.add_command(label='Eliminar ejercicios', command=abrir_ventana_eliminar)
 submenu_rutinas.add_command(label='Definir rutina (con descansos)', command=abrir_ventana_rutinas)
-menu_principal.add_command(label='Iniciar rutina', command=abrir_ventana_iniciar)  # ✔️ Esta línea debe estar
+menu_principal.add_command(label='Iniciar rutina', command=abrir_ventana_iniciar)  
 menu_principal.add_command(label='Salir', command=ventana.quit)
 
 ventana.mainloop()
