@@ -119,7 +119,7 @@ def abrir_ventana_rutinas():
     scrollbar = tk.Scrollbar(frame_lista)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-    listbox_rutina = tk.Listbox(frame_lista, font=('Verdana', 10), yscrollcommand=scrollbar.set)
+    listbox_rutina = tk.Listbox(frame_lista, font=('Verdana', 10), yscrollcommand=scrollbar.set, selectmode=tk.MULTIPLE) 
     listbox_rutina.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
     scrollbar.config(command=listbox_rutina.yview)
